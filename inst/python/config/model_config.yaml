@@ -10,7 +10,9 @@ hyperparameter: {
 
   perplexity: 10,
 
-  seed: 1
+  seed: 1,
+
+  rel_convergence_thres: 1e-6
 }
 
 architecture: {

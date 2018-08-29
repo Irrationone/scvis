@@ -29,7 +29,8 @@ def train(args):
     res = model.train(data=train_data,
                       batch_size=hyperparameter['batch_size'],
                       max_iter=max_iter,
-                      pretrained_model=args['pretrained_model_file'])
+                      pretrained_model=args['pretrained_model_file'],
+                      rel_convergence_thres=hyperparameter['rel_convergence_thres'])
     model.set_normalizer(normalizer)
 
     # Save the trained model
@@ -298,7 +299,8 @@ class SCVIS(object):
         return elbo, tsne_cost
 
     def train(self, data, max_iter=1000, batch_size=None,
-              pretrained_model=None, verbose=True, verbose_interval=50):
+              pretrained_model=None, verbose=True, verbose_interval=50,
+              rel_convergence_thres = 1e-5):
 
         max_iter = max_iter
         batch_size = batch_size or self.hyperparameter['batch_size']
@@ -313,6 +315,8 @@ class SCVIS(object):
             self.load_sess(pretrained_model)
 
         start = datetime.now()
+        converged = False
+
         for iter_i in range(max_iter):
             x, y = data.next_batch(batch_size)
 
@@ -320,7 +324,10 @@ class SCVIS(object):
             status['elbo'][iter_i] = status_batch[0]
             status['tsne_cost'][iter_i] = status_batch[1]
 
-            if verbose and iter_i % verbose_interval == 0:
+            if iter_i > 0 and np.absolute(status['elbo'][iter_i] - status['elbo'][iter_i-1])/status['elbo'][iter_i-1] < rel_convergence_thres:
+                converged = True
+
+            if verbose and (iter_i % verbose_interval == 0 or converged):
                 print('Batch {}'.format(iter_i))
                 print((
                     'elbo: {}\n'
