@@ -327,6 +327,8 @@ class SCVIS(object):
 
             if iter_i > 0 and (np.absolute((status['elbo'][iter_i] - status['elbo'][iter_i-1])/status['elbo'][iter_i-1]) < rel_convergence_thres):
                 converged += 1
+            else:
+                converged = 0
 
             if verbose and (iter_i % verbose_interval == 0 or converged >= convergence_iters):
                 print('Batch {}'.format(iter_i))
